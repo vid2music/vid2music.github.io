@@ -28,35 +28,6 @@
         .questions p {
             margin: 10px 0;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            text-align: center;
-            max-width: 500px;
-            margin: auto;
-        }
-        .close-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -65,14 +36,7 @@
         <div id="video-pairs"></div>
         <button type="submit">Submit</button>
     </form>
-
-    <div id="thank-you-modal" class="modal">
-        <div class="modal-content">
-            <p>Thank you for your submission! Verification Code:54088</p>
-            <button class="close-btn" id="close-btn">OK</button>
-        </div>
-    </div>
-
+    
     <script>
         const methods = ["Ours", "CMT", "Video2Music", "VidMusicGen", "Vid2MLDM"];
         const totalSamples = 20;
@@ -84,7 +48,7 @@
         const methodSyncCannotTell = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
 
         function getRandomSample(method, sampleIndex) {
-            return `https://vid2music.github.io/static/nips_music/${method}_v2/${sampleIndex}.mp4`;
+            return `https://vid2music.github.io/static/nips_music/${method}/${sampleIndex}.mp4`;
         }
 
         function getRandomMethod(excludeMethod) {
@@ -187,17 +151,7 @@
             return counts;
         }
 
-        function submitForm(transformedData) {
-            return fetch(document.getElementById('evaluation-form').action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams(transformedData)
-            });
-        }
-
-        document.getElementById('evaluation-form').addEventListener('submit', async function (event) {
+        document.getElementById('evaluation-form').addEventListener('submit', function (event) {
             event.preventDefault();
 
             const counts = calculateCounts();
@@ -243,20 +197,25 @@
 
                 "entry.1070875508": counts["Vid2MLDM"].syncCount,
                 "entry.724820824": counts["Vid2MLDM"].validSyncPresentations
+
+                
+                
+               
+                
+                
             };
 
-            try {
-                submitForm(transformedData);
-                // Show custom thank you modal
-                document.getElementById('thank-you-modal').style.display = 'flex';
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while submitting your evaluation. Please try again.');
-            }
-        });
+            fetch(event.target.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams(transformedData)
+            });
 
-        document.getElementById('close-btn').addEventListener('click', function() {
-            location.reload(); // Reload the page after clicking OK
+            // Show thank you message and reload the page
+            alert('Thank you for your submission! Verification Code: 54088');
+            location.reload(); // Reload the page after submission
         });
 
         window.onload = loadVideoPairs;
