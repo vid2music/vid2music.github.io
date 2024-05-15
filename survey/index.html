@@ -115,7 +115,7 @@
             }
         }
 
-        function calculateAverages() {
+        function calculateCounts() {
             const formData = new FormData(document.getElementById('evaluation-form'));
             formData.forEach((value, key) => {
                 if (value.startsWith("none_")) {
@@ -136,36 +136,74 @@
                 }
             });
 
-            const averages = {};
+            const counts = {};
             methods.forEach(method => {
                 const validMatchPresentations = methodPresentations[method] - methodCannotTell[method];
                 const validSyncPresentations = methodSyncPresentations[method] - methodSyncCannotTell[method];
-                averages[method] = {
-                    matchAvg: (methodCounts[method] / validMatchPresentations) || 0,
-                    preferAvg: (methodSyncCounts[method] / validSyncPresentations) || 0
+                counts[method] = {
+                    matchCount: methodCounts[method],
+                    validMatchPresentations: validMatchPresentations,
+                    syncCount: methodSyncCounts[method],
+                    validSyncPresentations: validSyncPresentations
                 };
             });
 
-            return averages;
+            return counts;
         }
 
         document.getElementById('evaluation-form').addEventListener('submit', function (event) {
             event.preventDefault();
 
-            const averages = calculateAverages();
+            const counts = calculateCounts();
             const transformedData = {
-                "entry.1905478767": averages["Ours"].matchAvg,
-                "entry.504508340": averages["CMT"].matchAvg,
-                "entry.2028907789": averages["Video2Music"].matchAvg,
-                "entry.2080477341": averages["VidMusicGen"].matchAvg,
-                "entry.1431813866": averages["Vid2MLDM"].matchAvg,
-                "entry.1901305168": averages["Ours"].preferAvg,
-                "entry.1502669763": averages["CMT"].preferAvg,
-                "entry.2015173387": averages["Video2Music"].preferAvg,
-                "entry.2055540137": averages["VidMusicGen"].preferAvg,
-                "entry.1070875508": averages["Vid2MLDM"].preferAvg
-            };
+                // Match Counts
+                "entry.1905478767": counts["Ours"].matchCount,
+                "entry.125628258": counts["Ours"].validMatchPresentations,
 
+                "entry.504508340": counts["CMT"].matchCount,
+                "entry.1371077143": counts["CMT"].validMatchPresentations,
+
+                "entry.2028907789": counts["Video2Music"].matchCount,
+                "entry.1341468949": counts["Video2Music"].validMatchPresentations,
+
+                
+                "entry.2080477341": counts["VidMusicGen"].matchCount,
+                "entry.581360649": counts["VidMusicGen"].validMatchPresentations,
+
+
+                "entry.1431813866": counts["Vid2MLDM"].matchCount,
+                "entry.605505831": counts["Vid2MLDM"].validMatchPresentations,
+
+                // Valid Match Presentations
+                
+                
+                
+                
+                
+
+                // Sync Counts
+                "entry.1901305168": counts["Ours"].syncCount,
+                "entry.1007215839": counts["Ours"].validSyncPresentations,
+
+
+                "entry.1502669763": counts["CMT"].syncCount,
+                "entry.494787538": counts["CMT"].validSyncPresentations,
+
+                "entry.2015173387": counts["Video2Music"].syncCount,
+                "entry.1467845774": counts["Video2Music"].validSyncPresentations,
+
+                "entry.2055540137": counts["VidMusicGen"].syncCount,
+                "entry.538732034": counts["VidMusicGen"].validSyncPresentations,
+
+                "entry.1070875508": counts["Vid2MLDM"].syncCount,
+                "entry.724820824": counts["Vid2MLDM"].validSyncPresentations
+
+                
+                
+               
+                
+                
+            };
 
             fetch(event.target.action, {
                 method: 'POST',
@@ -176,7 +214,7 @@
             });
 
             // Show thank you message and reload the page
-            alert('Thank you for your submission! Verifcation Code: 54088');
+            alert('Thank you for your submission!');
             location.reload(); // Reload the page after submission
         });
 
