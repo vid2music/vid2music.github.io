@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Video Evaluation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            text-align: center;
+        }
+        .video-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .video-wrapper {
+            text-align: center;
+            margin: 0 20px;
+        }
+        .questions {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .questions p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Music Video Evaluation</h1>
+    <form id="evaluation-form" action="https://docs.google.com/forms/d/e/1FAIpQLSf1zJ17FDlbXK-6eFE8sKyKBuP3_IZ4E2H-rX3EuOGSg1E_-Q/formResponse" method="POST" target="_self">
+        <div id="video-pairs"></div>
+        <button type="submit">Submit</button>
+    </form>
+    
+    <script>
+        const methods = ["Ours", "CMT", "Video2Music", "VidMusicGen", "Vid2MLDM"];
+        const totalSamples = 20;
+        const methodCounts = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
+        const methodSyncCounts = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
+        const methodPresentations = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
+        const methodSyncPresentations = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
+        const methodCannotTell = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
+        const methodSyncCannotTell = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
+
+        function getRandomSample(method, sampleIndex) {
+            return `https://vid2music.github.io/static/nips_music/${method}/${sampleIndex}.mp4`;
+        }
+
+        function getRandomMethod(excludeMethod) {
+            const otherMethods = methods.filter(method => method !== excludeMethod);
+            return otherMethods[Math.floor(Math.random() * otherMethods.length)];
+        }
+
+        function createVideoPair(index, sampleIndex) {
+            const methodA = "Ours";
+            const methodB = getRandomMethod(methodA);
+            const videoA = getRandomSample(methodA, sampleIndex);
+            const videoB = getRandomSample(methodB, sampleIndex);
+
+            const oursInA = Math.random() < 0.5;
+
+            methodPresentations[oursInA ? "Ours" : methodB]++;
+            methodPresentations[oursInA ? methodB : "Ours"]++;
+            methodSyncPresentations[oursInA ? "Ours" : methodB]++;
+            methodSyncPresentations[oursInA ? methodB : "Ours"]++;
+
+            return `
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <video width="320" height="240" controls>
+                            <source src="${oursInA ? videoA : videoB}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>Music Video A</p>
+                    </div>
+                    <div class="video-wrapper">
+                        <video width="320" height="240" controls>
+                            <source src="${oursInA ? videoB : videoA}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>Music Video B</p>
+                    </div>
+                </div>
+                <div class="questions">
+                    <p>Q1: Which music do you think has the best music quality?</p>
+                    <label><input type="radio" name="match${index}" value="${oursInA ? 'Ours' : methodB}" required> A is better</label><br>
+                    <label><input type="radio" name="match${index}" value="none_${oursInA ? 'Ours_' + methodB : methodB + '_Ours'}" required> Cannot tell</label><br>
+                    <label><input type="radio" name="match${index}" value="${oursInA ? methodB : 'Ours'}" required> B is better</label><br>
+
+                    <p>Q2: Which background music has better synchronization between music beats and visual dynamics?</p>
+                    <label><input type="radio" name="prefer${index}" value="${oursInA ? 'Ours' : methodB}" required> A is better</label><br>
+                    <label><input type="radio" name="prefer${index}" value="none_${oursInA ? 'Ours_' + methodB : methodB + '_Ours'}" required> Cannot tell</label><br>
+                    <label><input type="radio" name="prefer${index}" value="${oursInA ? methodB : 'Ours'}" required> B is better</label><br>
+                </div>
+            `;
+        }
+
+        function loadVideoPairs() {
+            const videoPairsContainer = document.getElementById('video-pairs');
+            const usedIndices = new Set();
+
+            for (let i = 0; i < 10; i++) {
+                let sampleIndex;
+                do {
+                    sampleIndex = Math.floor(Math.random() * totalSamples) + 1;
+                } while (usedIndices.has(sampleIndex));
+                
+                usedIndices.add(sampleIndex);
+                videoPairsContainer.innerHTML += createVideoPair(i, sampleIndex);
+            }
+        }
+
+        function calculateAverages() {
+            const formData = new FormData(document.getElementById('evaluation-form'));
+            formData.forEach((value, key) => {
+                if (value.startsWith("none_")) {
+                    const methods = value.split('_').slice(1);
+                    if (key.startsWith("match")) {
+                        methodCannotTell[methods[0]]++;
+                        methodCannotTell[methods[1]]++;
+                    } else if (key.startsWith("prefer")) {
+                        methodSyncCannotTell[methods[0]]++;
+                        methodSyncCannotTell[methods[1]]++;
+                    }
+                } else {
+                    if (key.startsWith("match")) {
+                        methodCounts[value]++;
+                    } else if (key.startsWith("prefer")) {
+                        methodSyncCounts[value]++;
+                    }
+                }
+            });
+
+            const averages = {};
+            methods.forEach(method => {
+                const validMatchPresentations = methodPresentations[method] - methodCannotTell[method];
+                const validSyncPresentations = methodSyncPresentations[method] - methodSyncCannotTell[method];
+                averages[method] = {
+                    matchAvg: (methodCounts[method] / validMatchPresentations) || 0,
+                    preferAvg: (methodSyncCounts[method] / validSyncPresentations) || 0
+                };
+            });
+
+            return averages;
+        }
+
+        document.getElementById('evaluation-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const averages = calculateAverages();
+            const transformedData = {
+                "entry.1905478767": averages["Ours"].matchAvg,
+                "entry.504508340": averages["CMT"].matchAvg,
+                "entry.2028907789": averages["Video2Music"].matchAvg,
+                "entry.2080477341": averages["VidMusicGen"].matchAvg,
+                "entry.1431813866": averages["Vid2MLDM"].matchAvg,
+                "entry.1901305168": averages["Ours"].preferAvg,
+                "entry.1502669763": averages["CMT"].preferAvg,
+                "entry.2015173387": averages["Video2Music"].preferAvg,
+                "entry.2055540137": averages["VidMusicGen"].preferAvg,
+                "entry.1070875508": averages["Vid2MLDM"].preferAvg
+            };
+
+
+            fetch(event.target.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams(transformedData)
+            });
+
+            // Show thank you message and reload the page
+            alert('Thank you for your submission! Verifcation Code: 54088');
+            location.reload(); // Reload the page after submission
+        });
+
+        window.onload = loadVideoPairs;
+    </script>
+</body>
+</html>
