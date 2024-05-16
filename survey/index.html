@@ -68,7 +68,7 @@
 
     <div id="thank-you-modal" class="modal">
         <div class="modal-content">
-            <p>Thank you for your submission! Verification Code:54088</p>
+            <p id="verification-code-message">Thank you for your submission! Verification Code: </p>
             <button class="close-btn" id="close-btn">OK</button>
         </div>
     </div>
@@ -82,6 +82,8 @@
         const methodSyncPresentations = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
         const methodCannotTell = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
         const methodSyncCannotTell = { "Ours": 0, "CMT": 0, "Video2Music": 0, "VidMusicGen": 0, "Vid2MLDM": 0 };
+
+        let startTime;
 
         function getRandomSample(method, sampleIndex) {
             return `https://vid2music.github.io/static/nips_music/${method}_v2/${sampleIndex}.mp4`;
@@ -187,6 +189,16 @@
             return counts;
         }
 
+        function generateVerificationCode(duration) {
+            const prefix = duration > 200 ? "54088" : "30678";
+            const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let code = '';
+            for (let i = 0; i < 3; i++) {
+                code += characters[Math.floor(Math.random() * characters.length)];
+            }
+            return prefix + code;
+        }
+
         function submitForm(transformedData) {
             return fetch(document.getElementById('evaluation-form').action, {
                 method: 'POST',
@@ -212,25 +224,15 @@
                 "entry.2028907789": counts["Video2Music"].matchCount,
                 "entry.1341468949": counts["Video2Music"].validMatchPresentations,
 
-                
                 "entry.2080477341": counts["VidMusicGen"].matchCount,
                 "entry.581360649": counts["VidMusicGen"].validMatchPresentations,
-
 
                 "entry.1431813866": counts["Vid2MLDM"].matchCount,
                 "entry.605505831": counts["Vid2MLDM"].validMatchPresentations,
 
-                // Valid Match Presentations
-                
-                
-                
-                
-                
-
                 // Sync Counts
                 "entry.1901305168": counts["Ours"].syncCount,
                 "entry.1007215839": counts["Ours"].validSyncPresentations,
-
 
                 "entry.1502669763": counts["CMT"].syncCount,
                 "entry.494787538": counts["CMT"].validSyncPresentations,
@@ -245,13 +247,31 @@
                 "entry.724820824": counts["Vid2MLDM"].validSyncPresentations
             };
 
+            const endTime = new Date().getTime();
+            const duration = (endTime - startTime) / 1000; // Convert milliseconds to seconds
+
+            const verificationCode = generateVerificationCode(duration);
+
+            const durationAndCodeData = {
+                "entry.545734147": duration, // Replace XXXXXX with the appropriate entry ID for recording time
+                "entry.880838736": verificationCode // Replace YOUR_VERIFICATION_CODE_ENTRY_ID with the entry ID for verification code
+            };
+
+            Object.assign(transformedData, durationAndCodeData);
+
             try {
                 submitForm(transformedData);
-                // Show custom thank you modal
+                document.getElementById('verification-code-message').textContent += verificationCode;
                 document.getElementById('thank-you-modal').style.display = 'flex';
             } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred while submitting your evaluation. Please try again.');
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!startTime && event.target.closest('input[type="radio"]')) {
+                startTime = new Date().getTime();
             }
         });
 
