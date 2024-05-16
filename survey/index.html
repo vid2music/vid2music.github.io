@@ -190,7 +190,7 @@
         }
 
         function generateVerificationCode(duration) {
-            const prefix = duration > 200 ? "54088" : "30678";
+            const prefix = duration > 160 ? "54088" : "30678";
             const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
             let code = '';
             for (let i = 0; i < 3; i++) {
