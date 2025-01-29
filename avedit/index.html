@@ -5,74 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AVEdit Survey</title>
   <style>
-      body {
-          font-family: Arial, sans-serif;
-          text-align: center;
-      }
-      h1 {
-          text-align: center;
-      }
-      .video-container {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 20px;
-      }
-      .video-wrapper {
-          text-align: center;
-          margin: 0 20px;
-      }
-      .questions {
-          text-align: center;
-          margin-bottom: 30px;
-      }
-      .questions p {
-          margin: 10px 0;
-      }
-      .modal {
-          display: none;
-          position: fixed;
-          z-index: 1;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          background-color: rgba(0, 0, 0, 0.5);
-          justify-content: center;
-          align-items: center;
-      }
-      .modal-content {
-          background-color: white;
-          padding: 20px;
-          border-radius: 5px;
-          text-align: center;
-          max-width: 500px;
-          margin: auto;
-      }
-      .close-btn {
-          background-color: #4CAF50;
-          color: white;
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-      }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    .video-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .video-wrapper {
+      text-align: center;
+      margin: 0 20px;
+    }
+    .questions {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+      max-width: 500px;
+      margin: auto;
+    }
+    .close-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>AVEdit Survey</h1>
+  <!-- Added description below: -->
+  <p>Better editing quality means the edited audio and video contents better aligend with given prompt but also keeping orignal structure, and better synchronization.</p>
 
   <!-- FORM START -->
   <form
     id="evaluation-form"
-    action="https://docs.google.com/forms/d/e/YOUR_FORMS_ID/formResponse"
+    action="https://docs.google.com/forms/d/e/1FAIpQLSeXQhEJQGAcyT6RebUwOrFCnp0ggBr4eZ11GklZSHKSL8ACbA/formResponse"
     method="POST"
     target="_self"
   >
     <div id="video-pairs"></div>
     <button type="submit">Submit</button>
   </form>
-  <!-- FORM END -->
 
   <!-- THANK YOU MODAL -->
   <div id="thank-you-modal" class="modal">
@@ -83,341 +78,315 @@
   </div>
 
   <script>
-    /***************************
-     * Configuration Variables *
-     ***************************/
-
-    // We always compare "Ours" vs. one of these other methods.
+    /********************************************************
+     * 1) Configuration
+     ********************************************************/
     const alternativeMethods = ["ControlVideo", "TokenFlow", "RAVE"];
-
-    // The "pool" of possible Ours .mp4 files
-    // Each entry has the format: "filename@prompt.mp4"
     const oursSamples = [
-      "_-R5EPaybpk_000002@a cat is meowing.mp4",
-      "3d4Q9iU5Je8_000006@a dog is barking.mp4",
-      "9S4-bVB6v0Q_000005@a cat is meowing.mp4",
-      "22b6SLUvGHk_000020@a man is riding a surfboard on the sea.mp4",
-      "lVAPg1giCr8_000010@a police car is driving down the street.mp4",
-      "Do__idgHWJM_000490@a man is playing an exploding bomb.mp4",
-      "04_1N_55VFw_000030@a dog is barking.mp4",
-      "KEeyw8lcPKs_000000@a man is playing an exploding bomb.mp4",
-      "3LO8iqmX_LM_000030@a lion is roaring.mp4",
-      "4SUPgmqKe1s_000053@a seagull is chirping.mp4",
-      "7WL9Orh7auA_000324@a seagull is chirping.mp4",
-      "41SLncI_B04_000066@a splash of water lit up in the night sky..mp4"
+      '-ahgvCmiECM_000030@laser gun.mp4',
+      '04_1N_55VFw_000030@a dog is barking.mp4',
+      '0Cvljw2Sssk_000000@a man is playing an exploding bomb.mp4',
+      '0aKYFdbqjHc_000032@a splash of water lit up in the night sky..mp4',
+      '0yTG1Yrnmak_000030@a seagull is chirping.mp4',
+      '1914bVcPq0k_000030@a man is riding a surfboard on the sea.mp4',
+      '1QWd2fVos8s_000104@a seagull is chirping.mp4',
+      '1W-i57MQ-zQ_000590@a splash of water lit up in the night sky..mp4',
+      '1nzZrX5JWyA_000017@a lion is roaring.mp4',
+      '21vfIdV2B60_000030@a lion is roaring.mp4',
+      '22b6SLUvGHk_000020@a man is riding a surfboard on the sea.mp4',
+      '2PSepowyWHE_000003@a cat is meowing.mp4',
+      '2Zir1UxVpxo_000005@a tiger is roaring.mp4',
+      '2jIv5qBTS88_000009@a lion is roaring.mp4',
+      '2pxTI_FzoqI_000289@a splash of water lit up in the night sky..mp4',
+      '2wUsyQY0R5Q_000360@a boy is riding a surfboard on the sea.mp4',
+      '38DktuXxeqQ_000260@a man is riding a surfboard on the sea.mp4',
+      '38Vg0ciQWBc_000010@a man is riding a surfboard on the sea.mp4',
+      '3LO8iqmX_LM_000030@a lion is roaring.mp4',
+      '3S8bTR5VAp0_000030@a dog is barking.mp4',
+      '3Wt_ldHN6QE_000113@a seagull is chirping.mp4',
+      '3d4Q9iU5Je8_000006@a dog is barking.mp4',
+      '3gjF-cVb_m4_000030@a dog is barking.mp4',
+      '4Ruk56DiQj8_000030@a seagull is chirping.mp4',
+      '4SUPgmqKe1s_000053@a seagull is chirping.mp4',
+      '4yJFeZd3oYg_000030@a man is riding a surfboard on the sea.mp4',
+      '5b04Vp0loTM_000030@a dog is barking.mp4',
+      '5nAvo9b2_SY_000020@a lion is roaring.mp4',
+      '5pncSb7fxEQ_000030@a dog is barking.mp4',
+      '6Jo_tvf0qdI_000009@a man is playing an exploding bomb.mp4',
+      '6VpcBh1KPSM_000001@a dog is barking.mp4',
+      '6WIPUATvzL4_000001@a lion is roaring.mp4',
+      '6YS3ewiOBkU_000007@a cat is meowing.mp4',
+      '6kdiESHOO3w_000030@a dog is barking.mp4',
+      '7IVwirRF3W0_000030@laser gun.mp4',
+      '7WL9Orh7auA_000324@a seagull is chirping.mp4',
+      '7cIVRdCLnW4_000064@a dog is barking.mp4',
+      '81FaBaq0t-8_000225@a man is riding a surfboard on the sea.mp4',
+      '8LVWNGRjD0g_000252@laser gun.mp4',
+      '8LfRQTJAemw_000322@a splash of water lit up in the night sky..mp4',
+      '92vVMZ4Zkcc_000000@a lion is roaring.mp4',
+      '9IIKUunyzM8_000007@a cat is meowing.mp4',
+      '9bNTnSx8eFY_000240@a seagull is chirping.mp4',
+      'AwW31u6wYvE_000019@laser gun.mp4',
+      'AyRHwZyYxEs_000003@a lion is roaring.mp4',
+      'BCcdatk468s_000070@a lion is roaring.mp4',
+      'BFBW5bEqCy0_000018@a lion is roaring.mp4',
+      'C0i90WmUMvE_000109@a cat is meowing.mp4',
+      'CM5W31FRa7o_000030@a lion is roaring.mp4',
+      'CWFnfL-5X-M_000030@a young girl is playing an exploding bomb.mp4',
+      'Do__idgHWJM_000490@a man is playing an exploding bomb.mp4',
+      'ESRiXGhb-Ww_000095@a cat is meowing.mp4',
+      'FIO-QGbT1-g_000000@a man is riding a surfboard on the sea.mp4',
+      'GQHfBnaGXu8_000036@a tiger is roaring.mp4',
+      'GQJ3-6ZBsfg_000200@two men are playing an exploding bomb.mp4',
+      'JQ39VPSbQ2o_000000@a police car is driving on the road.mp4',
+      'KEeyw8lcPKs_000000@a man is playing an exploding bomb.mp4',
+      'KW_OFhShBfI_000040@a police car is driving down the road.mp4',
+      'LGdZx_Ng2OU_000070@a police car is driving.mp4',
+      'LIUowNjRNwE_000125@laser gun.mp4',
+      'LSMgG64MW2U_000130@a police car is driving down the street.mp4',
+      'M-bmsXbJBdw_000034@a police car is driving on the street.mp4',
+      'McWY8wmi1NE_000045@a tiger is roaring.mp4',
+      'MkJuGDph-1k_000070@a lion is roaring.mp4',
+      'MmIIjAzgw30_000180@a police car is driving down the road.mp4',
+      'N59msUnyy1g_000054@laser gun.mp4',
+      'SCskHem1qzo_000060@a man is playing an exploding bomb.mp4',
+      '_-R5EPaybpk_000002@a cat is meowing.mp4',
+      '_Xha6m87OOs_000060@a cat is meowing.mp4',
+      '_wQakQ-AC3A_000020@a seagull is chirping.mp4',
+      'a8fa79w2aIQ_000023@a splash of water is on the road.mp4',
+      'bBMcsO6IeDE_000021@a cat is meowing.mp4',
+      'bnqsQhk2yX0_000040@laser gun.mp4',
+      'cRt6_axWZqY_000020@a lion is roaring.mp4',
+      'ctJ2410j7qo_000040@a man is riding a surfboard on the sea.mp4',
+      'dBgiqeXB7PI_000038@a tiger is roaring.mp4',
+      'do8fVVvSvTQ_000130@a young man is playing an exploding bomb.mp4',
+      'e6at9oqeIGw_000086@a splash of water is on the snow.mp4',
+      'fIramHEoZvg_000017@a cat is meowing.mp4',
+      'j3NuRPLUDhg_000021@a cat is meowing.mp4',
+      'jU3mklfml-E_000001@a tiger is roaring.mp4',
+      'kJe373Z1qsc_000050@a police car is driving down the street.mp4',
+      'kqfvQWAH0C0_000130@laser gun.mp4',
+      'lVAPg1giCr8_000010@a police car is driving down the street.mp4',
+      'm6iAg3VoVFo_000050@a police car is driving down the road.mp4',
+      'o0CMD5nm-48_000380@a police car is driving down the road.mp4',
+      'qfSpVBLpmg8_000140@a tiger is roaring.mp4',
+      'qiWvQK-siSA_000087@a tiger is roaring.mp4',
+    ];
+    const totalPairs = 5; // We'll show 5 pairs
+
+    // We'll store for each question which competitor is used, and if Ours is A or B
+    let pairCompetitor = Array(totalPairs);
+    let pairOursInA = Array(totalPairs);
+
+    // Google Form "short-answer" fields (replace with your real IDs)
+    const qEntryIDs = [
+      "entry.1905478767", // Q1
+      "entry.125628258",  // Q2
+      "entry.504508340",  // Q3
+      "entry.1371077143", // Q4
+      "entry.724820824"   // Q5
     ];
 
-    // Number of pairs to show
-    const totalPairs = 10;
+    // Time & Verification Code fields
+    const timeEntryID = "entry.545734147";
+    const codeEntryID = "entry.880838736";
 
-    // If question[0] => Mute video
-    // If question[1] => Show only audio
-    // Otherwise => normal video
-    const questionPool = [
-      "Which video do you think has the better video editing quality?",
-      "Which audio do you think has the better audio editing quality?",
-      "Which video do you think has the better synchronization?",
-      "Which video do you think has the better quality overall?"
-    ];
+    let startTime = null;
 
-    // Tally counters
-    const methods = ["Ours", "ControlVideo", "TokenFlow", "RAVE"];
-
-    const methodBetterCounts = {
-      "Ours": 0,
-      "ControlVideo": 0,
-      "TokenFlow": 0,
-      "RAVE": 0
-    };
-    const methodPresentations = {
-      "Ours": 0,
-      "ControlVideo": 0,
-      "TokenFlow": 0,
-      "RAVE": 0
-    };
-    const methodCannotTell = {
-      "Ours": 0,
-      "ControlVideo": 0,
-      "TokenFlow": 0,
-      "RAVE": 0
-    };
-
-    let startTime; // We'll capture the time once the user starts interacting
-
-    /*******************************
-     * Helper Functions: Filenames *
-     *******************************/
-
-    // parseFilename: splits "filename@some prompt.mp4" into separate parts
+    /********************************************************
+     * 2) Utility: parse filenames
+     ********************************************************/
     function parseFilename(fullName) {
       const noExt = fullName.replace(".mp4", "");
       const [baseName, promptPart] = noExt.split("@");
-      return {
-        fullName, // e.g. "XYZ@a dog is barking.mp4"
-        baseName, // e.g. "XYZ"
-        prompt: promptPart // e.g. "a dog is barking"
-      };
+      return { fullName, baseName, prompt: promptPart };
     }
 
-    // Return the path for "Ours", "ControlVideo", etc.
-    function getVideoPath(method, fullName) {
-      // Adjust path as needed
-      return `./data/${method}/${fullName}`;
+    function getVideoPath(method, fileName) {
+      return `./data/${method}/${fileName}`;
     }
 
-    // Return the path for the original input video
     function getInputVideoPath(baseName) {
-      // Adjust path as needed
       return `./data/Ori/${baseName}.mp4`;
     }
 
-    /*************************************
-     * Building the Pairs (HTML content) *
-     *************************************/
-
-    function createMediaTag(question, src, label) {
-      // question[0]: Mute video
-      // question[1]: Only audio
-      // otherwise: normal video w/ audio
-
-      if (question === questionPool[0]) {
-        // "Which VIDEO do you think has the better video editing quality?"
-        // => <video muted>
-        return `
-          <video width="320" height="240" controls muted>
-            <source src="${src}" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <p>${label}</p>
-        `;
-      } else if (question === questionPool[1]) {
-        // "Which AUDIO do you think has the better audio editing quality?"
-        // => <audio> only
-        return `
-          <audio controls>
-            <source src="${src}" type="audio/mp4" />
-            Your browser does not support the audio tag.
-          </audio>
-          <p>${label}</p>
-        `;
-      } else {
-        // For other questions: normal <video>
-        return `
-          <video width="320" height="240" controls>
-            <source src="${src}" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <p>${label}</p>
-        `;
-      }
-    }
-
-    function createVideoPair(fileInfo, pairIndex) {
-      const methodA = "Ours";
+    /********************************************************
+     * 3) Build the 5 Pairs
+     ********************************************************/
+    function createVideoPair(fileInfo, i) {
+      // Ours vs random method
       const methodB = alternativeMethods[Math.floor(Math.random() * alternativeMethods.length)];
+      pairCompetitor[i] = methodB;
 
-      const pathA = getVideoPath(methodA, fileInfo.fullName);
-      const pathB = getVideoPath(methodB, fileInfo.fullName);
-      const pathInput = getInputVideoPath(fileInfo.baseName);
-
-      // Decide which method is "A" or "B"
+      // Randomly decide if Ours is "A" or "B"
       const oursInA = Math.random() < 0.5;
-      methodPresentations["Ours"]++;
-      methodPresentations[methodB]++;
+      pairOursInA[i] = oursInA;
 
-      // Random question
-      const randomQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
-
-      // Build the HTML blocks depending on question type
-      // Input (left), A (middle), B (right)
-      // We re-use "createMediaTag(question, src, label)"
-      const inputMedia = createMediaTag(randomQuestion, pathInput, "Input");
-      const videoA = createMediaTag(randomQuestion, oursInA ? pathA : pathB, "Video A");
-      const videoB = createMediaTag(randomQuestion, oursInA ? pathB : pathA, "Video B");
+      // Build paths
+      const oursPath = getVideoPath("Ours", fileInfo.fullName);
+      const compPath = getVideoPath(methodB, fileInfo.fullName);
+      const inputPath = getInputVideoPath(fileInfo.baseName);
 
       return `
         <div style="margin-bottom: 30px;">
-          <h3 style="text-decoration: underline;">Prompt: ${fileInfo.prompt}</h3>
+          <h3 style="text-decoration: underline;">Target Prompt: ${fileInfo.prompt}</h3>
           <div class="video-container">
-            <div class="video-wrapper">${inputMedia}</div>
-            <div class="video-wrapper">${videoA}</div>
-            <div class="video-wrapper">${videoB}</div>
+            <!-- Input video on the left -->
+            <div class="video-wrapper">
+              <video width="320" height="240" controls>
+                <source src="${inputPath}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <p style="font-weight:bold;">Input</p>
+            </div>
+            <!-- Video A -->
+            <div class="video-wrapper">
+              <video width="320" height="240" controls>
+                <source src="${oursInA ? oursPath : compPath}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <p>Video A</p>
+            </div>
+            <!-- Video B -->
+            <div class="video-wrapper">
+              <video width="320" height="240" controls>
+                <source src="${oursInA ? compPath : oursPath}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <p>Video B</p>
+            </div>
           </div>
 
           <div class="questions">
-            <p><strong>Q${pairIndex + 1}:</strong> ${randomQuestion}</p>
+            <p><strong>Q${i + 1}:</strong> Which video do you think has the better editing quality overall?</p>
             <label>
-              <input
-                type="radio"
-                name="q${pairIndex}"
-                value="${oursInA ? 'Ours' : methodB}"
-                required
-              /> A is better
-            </label>
-            <br />
+              <input type="radio" name="q${i}" value="A" required> A is better
+            </label><br>
             <label>
-              <input
-                type="radio"
-                name="q${pairIndex}"
-                value="none_${oursInA ? 'Ours_' + methodB : methodB + '_Ours'}"
-                required
-              /> Cannot tell
-            </label>
-            <br />
+              <input type="radio" name="q${i}" value="none" required> Cannot tell
+            </label><br>
             <label>
-              <input
-                type="radio"
-                name="q${pairIndex}"
-                value="${oursInA ? methodB : 'Ours'}"
-                required
-              /> B is better
-            </label>
-            <br />
+              <input type="radio" name="q${i}" value="B" required> B is better
+            </label><br>
           </div>
         </div>
       `;
     }
 
-    // Load 10 distinct random samples
     function loadVideoPairs() {
-      const videoPairsContainer = document.getElementById("video-pairs");
-      const usedIndices = new Set();
+      const container = document.getElementById("video-pairs");
+      const used = new Set();
       const totalAvailable = oursSamples.length;
-
       if (totalAvailable < totalPairs) {
-        alert("Not enough Ours samples to display 10 pairs!");
+        alert("Not enough Ours samples!");
         return;
       }
-
       for (let i = 0; i < totalPairs; i++) {
         let randIndex;
         do {
           randIndex = Math.floor(Math.random() * totalAvailable);
-        } while (usedIndices.has(randIndex));
+        } while (used.has(randIndex));
+        used.add(randIndex);
 
-        usedIndices.add(randIndex);
-
-        const fileInfo = parseFilename(oursSamples[randIndex]);
-        const pairHTML = createVideoPair(fileInfo, i);
-        videoPairsContainer.innerHTML += pairHTML;
+        const fInfo = parseFilename(oursSamples[randIndex]);
+        container.innerHTML += createVideoPair(fInfo, i);
       }
     }
 
-    /*******************************
-     * Counting and Form Submission
-     *******************************/
-
-    function calculateCounts() {
-      const formData = new FormData(document.getElementById("evaluation-form"));
-
-      for (let m in methodBetterCounts) methodBetterCounts[m] = 0;
-      for (let m in methodCannotTell)    methodCannotTell[m] = 0;
-
-      formData.forEach((value) => {
-        if (value.startsWith("none_")) {
-          const splitted = value.split("_").slice(1);
-          splitted.forEach(method => {
-            if (methodCannotTell.hasOwnProperty(method)) {
-              methodCannotTell[method]++;
-            }
-          });
-        } else {
-          if (methodBetterCounts.hasOwnProperty(value)) {
-            methodBetterCounts[value]++;
-          }
-        }
-      });
-
-      const finalCounts = {};
-      methods.forEach(m => {
-        const validPresentations = methodPresentations[m] - methodCannotTell[m];
-        finalCounts[m] = {
-          betterCount: methodBetterCounts[m],
-          validPresentations: validPresentations
-        };
-      });
-      return finalCounts;
-    }
-
+    /********************************************************
+     * 4) On Submit: Build Short Strings
+     ********************************************************/
     function generateVerificationCode(duration) {
-      const prefix = duration > 160 ? "54088" : "30678";
-      const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+      const prefix = duration > 120 ? "54088" : "30678";
+      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
       let code = "";
       for (let i = 0; i < 3; i++) {
-        code += characters[Math.floor(Math.random() * characters.length)];
+        code += chars[Math.floor(Math.random() * chars.length)];
       }
       return prefix + code;
     }
 
-    function submitForm(transformedData) {
-      return fetch(document.getElementById("evaluation-form").action, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams(transformedData)
-      });
-    }
-
-    document.getElementById("evaluation-form").addEventListener("submit", async function (event) {
+    async function handleSubmit(event) {
       event.preventDefault();
 
-      const counts = calculateCounts();
+      const formData = new FormData(event.target);
+      const transformedData = {};
 
-      // Replace these entry IDs with your actual Google Forms fields
-      const transformedData = {
-        // Ours
-        "entry.111111": counts["Ours"].betterCount,
-        "entry.222222": counts["Ours"].validPresentations,
+      // For each question i from 0..4:
+      for (let i = 0; i < totalPairs; i++) {
+        const picked = formData.get(`q${i}`);  // "A", "none", or "B"
+        const competitor = pairCompetitor[i];
+        const oursInA = pairOursInA[i];
 
-        // ControlVideo
-        "entry.333333": counts["ControlVideo"].betterCount,
-        "entry.444444": counts["ControlVideo"].validPresentations,
+        let resultStr = "";
+        if (picked === "none") {
+          // => "Ours=METHOD"
+          resultStr = `Ours=${competitor}`;
+        } else if (picked === "A") {
+          // If Ours was A => Ours>METHOD, else Ours<METHOD
+          if (oursInA) {
+            resultStr = `Ours>${competitor}`;
+          } else {
+            // changed from "competitor>Ours" to "Ours<competitor"
+            resultStr = `Ours<${competitor}`;
+          }
+        } else {
+          // picked === "B"
+          // If Ours was B => Ours>METHOD, else Ours<METHOD
+          if (!oursInA) {
+            resultStr = `Ours>${competitor}`;
+          } else {
+            // changed from "competitor>Ours" to "Ours<competitor"
+            resultStr = `Ours<${competitor}`;
+          }
+        }
+        transformedData[qEntryIDs[i]] = resultStr;
+      }
 
-        // TokenFlow
-        "entry.555555": counts["TokenFlow"].betterCount,
-        "entry.666666": counts["TokenFlow"].validPresentations,
-
-        // RAVE
-        "entry.777777": counts["RAVE"].betterCount,
-        "entry.888888": counts["RAVE"].validPresentations
-      };
-
-      const endTime = new Date().getTime();
-      const duration = startTime ? (endTime - startTime) / 1000 : 0; // in seconds
-
+      // Time + Verification Code
+      const endTime = Date.now();
+      const duration = startTime ? (endTime - startTime) / 1000 : 0;
       const verificationCode = generateVerificationCode(duration);
 
-      // Again, replace with your real entry IDs for duration & code
-      const durationAndCodeData = {
-        "entry.999999": duration,
-        "entry.101010": verificationCode
-      };
-      Object.assign(transformedData, durationAndCodeData);
+      transformedData[timeEntryID] = duration;
+      transformedData[codeEntryID] = verificationCode;
 
+      // Submit to Google Forms, ignoring the response with no-cors
       try {
-        submitForm(transformedData);
+        await fetch(event.target.action, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          mode: "no-cors",
+          body: new URLSearchParams(transformedData)
+        });
+
+        // If the request didn't throw, we treat it as success
         document.getElementById("verification-code-message").textContent += verificationCode;
         document.getElementById("thank-you-modal").style.display = "flex";
-      } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred while submitting your evaluation. Please try again.");
+      } catch (err) {
+        // Only if there's a real network error
+        console.error("Submit error:", err);
+        alert("Error submitting. Please try again.");
+      }
+    }
+
+    /********************************************************
+     * 5) Event Listeners
+     ********************************************************/
+    document.getElementById("evaluation-form").addEventListener("submit", handleSubmit);
+
+    document.addEventListener("click", e => {
+      if (!startTime && e.target.closest('input[type="radio"]')) {
+        startTime = Date.now();
       }
     });
 
-    // Start the timer once the user clicks any radio button
-    document.addEventListener("click", function (event) {
-      if (!startTime && event.target.closest('input[type="radio"]')) {
-        startTime = new Date().getTime();
-      }
-    });
-
-    // Close modal -> reload page
-    document.getElementById("close-btn").addEventListener("click", function () {
+    document.getElementById("close-btn").addEventListener("click", () => {
       location.reload();
     });
 
-    // Generate all pairs on page load
     window.onload = loadVideoPairs;
   </script>
 </body>
